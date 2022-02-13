@@ -19,6 +19,7 @@ In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
 
+from sre_parse import expand_template
 import util
 
 class SearchProblem:
@@ -83,17 +84,98 @@ def depthFirstSearch(problem):
 
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
-
+    
     print("Start:", problem.getStartState())
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
+    
+    def dfs(problem, state, path = [], visited = set(), action = "start"):
+        if(action is not "start"): path.append(action)
+        if problem.isGoalState(state):
+            return path
+        visited.add(state)
+        successors = problem.getSuccessors(state)
+        for successor in successors:
+            nextState = successor[0]
+            nextAction = successor[1]
+            if nextState not in visited:
+                result = dfs(problem, nextState, path, visited, nextAction)
+                if result is not None:
+                    return result
+        path.pop()
+        return None
+
+    path = dfs(problem,problem.getStartState())
+    return path
     util.raiseNotDefined()
 
+def graphSearch(strategy, problem):
+    expandedNode = problem.getStartState()
+    frontier = [problem.getSuccessors(expandedNode)]
+    expanded = set()
+    if strategy is "bfs":
+        frontier = util.Stack
+    elif strategy is "dfs":
+        frontier = util.Queue
+    elif strategy is "ucs":
+        frontier = util.PriorityQueue
+    elif strategy is "astar":
+        frontier = util.PriorityQueueWithFunction
+    while(not problem.isGoal(expandedNode) and frontier):
+        
+        path = frontier.pop()
+        node = path[-1]
+        if node not in expanded:
+            neighbours = problem.getSuccessors(node)
+
+            for neighbour in neighbours:
+                new_path = list(path)
+                new_path.append(neighbour)
+                frontier.append(new_path)
+                if problem.isGoal(neighbour[0]): return path
+            expanded.add(node)
+            expandedNode = problem.getSuccessors()
+    return
+def getActionsFromPath(path):
+    actions = []
+    for node in path:
+        actions.append(node[1])
+    return actions
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
+    """def bfs():
+        queue = util.Queue()
+        path = []
+        visited = set()
+        start = problem.getStartState()
+        queue.push([[start,"start"]])
+        visited.add(start)
+        while queue:
+            path = queue.pop()
+            state = (path[-1])[0]
+            if problem.isGoalState(state):
+                return path
+            successors = problem.getSuccessors(state)
+            for successor in successors:
+                nextState = successor[0]
+                nextAction = successor[1]
+                actionState = [nextState,nextAction]
+                if nextState not in visited:
+                    new_path = list(path)
+                    new_path.append(actionState)
+                    queue.push(new_path)
+                    visited.add(nextState)
+    path = bfs()    
+    path.pop(0)
+    actionPath = []
+    for stateAction in path:
+        actionPath.append(stateAction[1])
+    return actionPath"""
+    path = graphSearch(problem)
+    return getActionsFromPath(path)
     util.raiseNotDefined()
 
 def uniformCostSearch(problem):
