@@ -274,6 +274,48 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
+     # Frontier to add successors to
+    front = util.PriorityQueue()
+    
+    # List of explored nodes storing the node (location,cost)
+    visited = []
+    
+    # Start state and starting node to be pushed to queue first
+    sState = problem.getStartState()
+    sNode = (sState, [], 0)
+    front.push(sNode, 0)
+    
+    # While the queue is not empty
+    while not front.isEmpty():
+    	# Make the current state and move actions equal to the lowest cost node in the frontier
+        currentState, moves, currCost = front.pop()
+        
+        if currentState not in visited or currCost < visited[currentState] :
+            currNode = (currentState, currCost)
+            visited.append(currNode)
+            
+        # Check if we are at goal state, if not create a new node based on each of the successors and update the total cost with hueristic to reach that state
+        if problem.isGoalState(currentState):
+            return moves
+        else:
+            potentialSucc = problem.getSuccessors(currentState)
+            for state, move, cost in potentialSucc:
+                tmpMoves = moves + [move]
+                tmpCost = problem.getCostOfActions(tmpMoves)
+                tmpNode = (state, tmpMoves, tmpCost)
+                
+                # Check if node has already been visited if not update the node in the frontier adding the hueristic to its cost
+                beenExplored = False
+                for v in visited:
+                    newState, newCost = v
+                    if state == newState and tmpCost >= newCost :
+                        beenExplored = True
+                        
+                if not beenExplored:
+                    front.update(tmpNode, tmpCost + heuristic(state, problem))
+                    # Add current node to visited list with its cost
+                    visited.append((state, tmpCost))
+    return moves
     util.raiseNotDefined()
 
 
