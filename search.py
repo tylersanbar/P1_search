@@ -143,6 +143,7 @@ def getActionsFromPath(path):
     for node in path:
         actions.append(node[1])
     return actions
+
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
@@ -173,14 +174,77 @@ def breadthFirstSearch(problem):
     actionPath = []
     for stateAction in path:
         actionPath.append(stateAction[1])
-    return actionPath"""
+    return actionPath
     path = graphSearch(problem)
     return getActionsFromPath(path)
-    util.raiseNotDefined()
+    return getActionsFromPath(path)
+    util.raiseNotDefined()"""
+    # Frontier to add successors to
+    front = util.Queue()
+    
+    # List of explored nodes
+    visited = []
+    
+    # Start state and starting node to be pushed to queue first
+    sState = problem.getStartState()
+    sNode = (sState, [], 0)
+    front.push(sNode)
 
+    # While the queue is not empty
+    while not front.isEmpty():
+    	# Make the current state and move actions equal to first node in the queue
+        currentState, moves, currCost = front.pop()
+        # Check if this state has been visited if not add it to the visited list
+        if currentState not in visited:
+            visited.append(currentState)
+            
+            # Check if we are at goal state, if not create a new node based on each of the successors and push it to the frontier
+            if problem.isGoalState(currentState):
+                return moves
+            else:
+                potentialSucc = problem.getSuccessors(currentState)
+                for state, move, cost in potentialSucc:
+                    tmpMoves = moves + [move]
+                    tmpCost = currCost + cost
+                    tmpNode = (state, tmpMoves, tmpCost)
+                    front.push(tmpNode)
+                
+    return moves
+    util.raiseNotDefined()
+    
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
+    # Frontier to add successors to
+    front = util.PriorityQueue()
+    
+    # List of explored nodes storing the node location and cost
+    visited = {}
+    
+    # Start state and starting node to be pushed to queue first
+    sState = problem.getStartState()
+    sNode = (sState, [], 0)
+    front.push(sNode, 0)
+    # While the queue is not empty
+    while not front.isEmpty():
+    	# Make the current state and move actions equal to the lowest cost node in the frontier
+        currentState, moves, currCost = front.pop()
+        # Check if this state has been visited if not add it to the visited with its cost
+        if currentState not in visited or currCost < visited[currentState] :
+            visited[currentState] = currCost
+            
+            # Check if we are at goal state, if not create a new node based on each of the successors and update 	       the total cost to reach that state
+            if problem.isGoalState(currentState):
+                return moves
+            else:
+                potentialSucc = problem.getSuccessors(currentState)
+                for state, move, cost in potentialSucc:
+                    tmpMoves = moves + [move]
+                    tmpCost = currCost + cost
+                    tmpNode = (state, tmpMoves, tmpCost)
+                    front.update(tmpNode,tmpCost)
+                
+    return moves
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
