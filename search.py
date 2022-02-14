@@ -91,57 +91,72 @@ def depthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
     
-    def dfs(problem, state, path = [], visited = set(), action = "start"):
-        if(action is not "start"): path.append(action)
-        if problem.isGoalState(state):
-            return path
-        visited.add(state)
-        successors = problem.getSuccessors(state)
-        for successor in successors:
-            nextState = successor[0]
-            nextAction = successor[1]
-            if nextState not in visited:
-                result = dfs(problem, nextState, path, visited, nextAction)
-                if result is not None:
-                    return result
-        path.pop()
-        return None
+    # def dfs(problem, state, path = [], visited = set(), action = "start"):
+    #     if(action != "start"): path.append(action)
+    #     if problem.isGoalState(state):
+    #         return path
+    #     visited.add(state)
+    #     successors = problem.getSuccessors(state)
+    #     for successor in successors:
+    #         nextState = successor[0]
+    #         nextAction = successor[1]
+    #         if nextState not in visited:
+    #             result = dfs(problem, nextState, path, visited, nextAction)
+    #             if result is not None:
+    #                 return result
+    #     path.pop()
+    #     return None
 
-    path = dfs(problem,problem.getStartState())
-    return path
+    # path = dfs(problem,problem.getStartState())
+    path = graphSearch("dfs", problem)
+    return getActionsFromPath(path)
     util.raiseNotDefined()
 
 def graphSearch(strategy, problem):
-    expandedNode = problem.getStartState()
-    frontier = [problem.getSuccessors(expandedNode)]
+    expandedNode = [problem.getStartState(),"start"]
+    
     expanded = set()
-    if strategy is "bfs":
-        frontier = util.Stack
-    elif strategy is "dfs":
-        frontier = util.Queue
-    elif strategy is "ucs":
-        frontier = util.PriorityQueue
-    elif strategy is "astar":
-        frontier = util.PriorityQueueWithFunction
-    while(not problem.isGoal(expandedNode) and frontier):
+    if strategy == "dfs":
+        frontier = util.Stack()
+    elif strategy == "bfs":
+        frontier = util.Queue()
+    elif strategy == "ucs":
+        frontier = util.PriorityQueue()
+    elif strategy == "astar":
+        frontier = util.PriorityQueueWithFunction()
+    args = []
+    
+    args.append([expandedNode])
+    if(strategy == "ucs"): args.append(0)
+    frontier.push(*args)
+    print("Args are ", *args)
+    while(not problem.isGoalState(expandedNode[0]) and frontier):
         
         path = frontier.pop()
-        node = path[-1]
-        if node not in expanded:
+        print("Path is", path)
+        node = (path[-1])[0]
+        print("Node is ",node)
+        if problem.isGoalState(node): return path
+        if(node not in expanded):
+            expanded.add(node)
             neighbours = problem.getSuccessors(node)
-
             for neighbour in neighbours:
                 new_path = list(path)
                 new_path.append(neighbour)
-                frontier.append(new_path)
-                if problem.isGoal(neighbour[0]): return path
-            expanded.add(node)
-            expandedNode = problem.getSuccessors()
+                args = []
+                args.append(new_path)
+                if(strategy == "ucs"): args.append(getTotalPathCost(new_path))
+                frontier.push(*args)
     return
+def getTotalPathCost(path):
+    cost = 0
+    for node in path:
+        if(node[1] != "start"): cost += node[2]
+    return cost
 def getActionsFromPath(path):
     actions = []
     for node in path:
-        actions.append(node[1])
+        if(node[1] != "start"): actions.append(node[1])
     return actions
 
 def breadthFirstSearch(problem):
@@ -175,76 +190,78 @@ def breadthFirstSearch(problem):
     for stateAction in path:
         actionPath.append(stateAction[1])
     return actionPath
-    path = graphSearch(problem)
+    """
+    path = graphSearch("bfs", problem)
     return getActionsFromPath(path)
-    return getActionsFromPath(path)
-    util.raiseNotDefined()"""
+    util.raiseNotDefined()
     # Frontier to add successors to
-    front = util.Queue()
+    # front = util.Queue()
     
-    # List of explored nodes
-    visited = []
+    # # List of explored nodes
+    # visited = []
     
-    # Start state and starting node to be pushed to queue first
-    sState = problem.getStartState()
-    sNode = (sState, [], 0)
-    front.push(sNode)
+    # # Start state and starting node to be pushed to queue first
+    # sState = problem.getStartState()
+    # sNode = (sState, [], 0)
+    # front.push(sNode)
 
-    # While the queue is not empty
-    while not front.isEmpty():
-    	# Make the current state and move actions equal to first node in the queue
-        currentState, moves, currCost = front.pop()
-        # Check if this state has been visited if not add it to the visited list
-        if currentState not in visited:
-            visited.append(currentState)
+    # # While the queue is not empty
+    # while not front.isEmpty():
+    # 	# Make the current state and move actions equal to first node in the queue
+    #     currentState, moves, currCost = front.pop()
+    #     # Check if this state has been visited if not add it to the visited list
+    #     if currentState not in visited:
+    #         visited.append(currentState)
             
-            # Check if we are at goal state, if not create a new node based on each of the successors and push it to the frontier
-            if problem.isGoalState(currentState):
-                return moves
-            else:
-                potentialSucc = problem.getSuccessors(currentState)
-                for state, move, cost in potentialSucc:
-                    tmpMoves = moves + [move]
-                    tmpCost = currCost + cost
-                    tmpNode = (state, tmpMoves, tmpCost)
-                    front.push(tmpNode)
+    #         # Check if we are at goal state, if not create a new node based on each of the successors and push it to the frontier
+    #         if problem.isGoalState(currentState):
+    #             return moves
+    #         else:
+    #             potentialSucc = problem.getSuccessors(currentState)
+    #             for state, move, cost in potentialSucc:
+    #                 tmpMoves = moves + [move]
+    #                 tmpCost = currCost + cost
+    #                 tmpNode = (state, tmpMoves, tmpCost)
+    #                 front.push(tmpNode)
                 
-    return moves
+    # return moves
     util.raiseNotDefined()
     
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    # Frontier to add successors to
-    front = util.PriorityQueue()
+    # """Search the node of least total cost first."""
+    # "*** YOUR CODE HERE ***"
+    # # Frontier to add successors to
+    # front = util.PriorityQueue()
     
-    # List of explored nodes storing the node location and cost
-    visited = {}
+    # # List of explored nodes storing the node location and cost
+    # visited = {}
     
-    # Start state and starting node to be pushed to queue first
-    sState = problem.getStartState()
-    sNode = (sState, [], 0)
-    front.push(sNode, 0)
-    # While the queue is not empty
-    while not front.isEmpty():
-    	# Make the current state and move actions equal to the lowest cost node in the frontier
-        currentState, moves, currCost = front.pop()
-        # Check if this state has been visited if not add it to the visited with its cost
-        if currentState not in visited or currCost < visited[currentState] :
-            visited[currentState] = currCost
+    # # Start state and starting node to be pushed to queue first
+    # sState = problem.getStartState()
+    # sNode = (sState, [], 0)
+    # front.push(sNode, 0)
+    # # While the queue is not empty
+    # while not front.isEmpty():
+    # 	# Make the current state and move actions equal to the lowest cost node in the frontier
+    #     currentState, moves, currCost = front.pop()
+    #     # Check if this state has been visited if not add it to the visited with its cost
+    #     if currentState not in visited or currCost < visited[currentState] :
+    #         visited[currentState] = currCost
             
-            # Check if we are at goal state, if not create a new node based on each of the successors and update 	       the total cost to reach that state
-            if problem.isGoalState(currentState):
-                return moves
-            else:
-                potentialSucc = problem.getSuccessors(currentState)
-                for state, move, cost in potentialSucc:
-                    tmpMoves = moves + [move]
-                    tmpCost = currCost + cost
-                    tmpNode = (state, tmpMoves, tmpCost)
-                    front.update(tmpNode,tmpCost)
+    #         # Check if we are at goal state, if not create a new node based on each of the successors and update 	       the total cost to reach that state
+    #         if problem.isGoalState(currentState):
+    #             return moves
+    #         else:
+    #             potentialSucc = problem.getSuccessors(currentState)
+    #             for state, move, cost in potentialSucc:
+    #                 tmpMoves = moves + [move]
+    #                 tmpCost = currCost + cost
+    #                 tmpNode = (state, tmpMoves, tmpCost)
+    #                 front.update(tmpNode,tmpCost)
                 
-    return moves
+    # return moves
+    path = graphSearch("ucs", problem)
+    return getActionsFromPath(path)
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
